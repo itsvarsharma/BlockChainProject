@@ -1,11 +1,13 @@
 const {GENESIS_DATA}=require('./config');
 const cryptoHash=require('./crypto-hash');
 class Block{
-    constructor({timestamp,prev_hash,hash,data}){
+    constructor({timestamp,prev_hash,hash,data,nonce, difficulty}){
         this.timestamp=timestamp;
         this.prev_hash=prev_hash;
         this.hash=hash;
         this.data=data;
+        this.nonce=nonce;
+        this.difficulty=difficulty;
     }
     static genesis(){
         return new this(GENESIS_DATA)
@@ -14,11 +16,21 @@ class Block{
 
         let hash,timestamp;
         const prev_hash = prevBlock.hash;
+        const {difficulty}=prevBlock;
+
+        let nonce=0;
+        do{
+            nonce++;
+            timestamp=Date.now();
+            hash=cryptoHash(timestamp,prev_hash,data,nonce,difficulty)
+        }while(hash.substring(0,difficulty)!=='0'.repeat(difficulty))
         return new this({
            timestamp,
            prev_hash,
            data,
-           hash: cryptoHash(timestamp,prev_hash,data) 
+           difficulty,
+           nonce,
+           hash,
         });
     }
 }
@@ -29,7 +41,8 @@ const block1=new Block({
     data:"hello"
 });
 
-const genesisBlock=Block.genesis()
+
+// const genesisBlock=Block.genesis()
 // console.log(genesisBlock);
 
 // const result=Block.mineBlock({ prevBlock:block1, data: "block2" });
